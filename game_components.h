@@ -28,8 +28,8 @@ typedef struct
     char style;
 } block;
 
-bool is_rocket(rocket rocket, int x, int y);
-bool is_ball(ball ball, int x, int y);
-bool is_block(block block, int x, int y);
+bool is_rocket(rocket* rocket, int x, int y);
+bool is_ball(ball* ball, int x, int y);
+bool is_block(block* block, int x, int y);
 
 #endif
