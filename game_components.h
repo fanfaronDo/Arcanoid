@@ -1,6 +1,8 @@
 #ifndef GAME_COMPONENTS_H
 #define GAME_COMPONENTS_H
 #define length(arr) sizeof(arr) / sizeof(*arr)
+#define WIDTH 24
+#define HEIGHT 10
 #include <stdbool.h>
 
 typedef struct 
@@ -22,14 +24,24 @@ typedef struct
 
 } ball;
 
-typedef struct 
+typedef struct
 {
-    pixel elems[2];
+    pixel pixel;
     char style;
 } block;
 
+typedef struct 
+{
+    int x_inversion;
+    int y_inversion;
+} invertion;
+
 bool is_rocket(rocket* rocket, int x, int y);
 bool is_ball(ball* ball, int x, int y);
-bool is_block(block* block, int x, int y);
-
+bool is_block_range(int x, int y);
+bool is_block(char field[WIDTH][HEIGHT], pixel pixel, char block);
+bool is_wall(pixel pixel);
+bool is_gates(pixel pix);
+bool is_barrier(char field[WIDTH][HEIGHT], pixel neighbor, rocket* rocket, char block);
+bool is_game_over(int* health);
 #endif

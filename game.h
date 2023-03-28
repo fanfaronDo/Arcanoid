@@ -1,19 +1,21 @@
 #ifndef GAME_H
 #define GAME_H
-#define WIDTH 24
-#define HEIGHT 10
-#define range_width_blocks (WIDTH - 4) / 2
-#define range_height_blocks (HEIGHT / 2) - 2
+
+
 
 
 #include <stdio.h>
 #include <stdlib.h>
 #include "game_components.h"
 
-void default_state(char field[WIDTH][HEIGHT], rocket* rocket, ball* ball);
-void build_start_blocks(block* blocks, int cnt_blocks);
-void set_start_blocks(char field[WIDTH][HEIGHT], block* blocks, int cnt_blocks);
 void render(char field[WIDTH][HEIGHT]);
 void game();
+void init_field(char field[WIDTH][HEIGHT], rocket* rocket, ball* ball, char block);
+void init_rocket(rocket* rocket);
+void ball_behavior(char field[WIDTH][HEIGHT], ball* ball, rocket* rocket, invertion* invert, char block);
+void movement_ball(char field[WIDTH][HEIGHT], ball* ball, rocket* rocket, invertion* invert, char block);
+void init_ball(ball* ball, int start_x, int start_y);
+void control_rocket(rocket* rocket, char ch);
+void move_rocket(rocket* rocket, int step);
 
 #endif

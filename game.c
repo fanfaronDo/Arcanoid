@@ -2,73 +2,148 @@
 
 void game(){
     rocket rocket;
-    ball ball; 
-    block* blocks;
-    char field[WIDTH][HEIGHT];
-    int cnt_blocks = 12;  
-    blocks = malloc(cnt_blocks * sizeof(block));
-    build_start_blocks(blocks, cnt_blocks);
-    default_state(field, &rocket, &ball);
-    set_start_blocks(field, blocks, cnt_blocks);
+    ball ball;
+    block** blocks;
+    invertion invert;
+    char field[WIDTH][HEIGHT];  
+    bool error = false;
+    int health = 4;
+    invert.x_inversion = 1;
+    invert.y_inversion = 1;
+    int len_blocks_n = HEIGHT / 3;
+    int len_blocks_m = WIDTH - 2;
+    blocks = allocete_memory(len_blocks_n, len_blocks_m, &error);
+
+    if (error) exit(1);
     
+    
+    init_rocket(&rocket);
+    init_ball(&ball, rocket.elems[1].x, rocket.elems[1].y - 1);
+    init_field(field, &rocket, &ball, blocks);
     render(field);
 
-    free(blocks);
+    do {
+        char ch = getchar();
+        system("cls");
+        control_rocket(&rocket, ch);
+        init_field(field, &rocket, &ball, blocks);
+        movement_ball(field, &ball, &rocket, &invert, blocks);
+        render(field);
+    }while (health);
 }
 
-void build_start_blocks(block* blocks, int cnt_blocks){
-    int x = 0;
-    int y = 1;
-    printf("count blocks = %d\n", cnt_blocks);
-    for (int i = 0; i < cnt_blocks; ++i){  
-        block block;
-        block.elems[0].x = x++;
-        block.elems[0].y = y;
-        block.elems[1].x = x++;
-        block.elems[1].y = y;
-        block.style = '#';
-        blocks[i] = block; 
-        if (x == WIDTH - 2){
-            y++;
-            x = 2;
-        }
+void control_rocket(rocket* rocket, char ch){
+    switch (ch)
+    {
+    case 'a':
+        move_rocket(rocket, -1);
+        break;
+    case 'd':
+        move_rocket(rocket, 1);
+        break;
+    default:
+        break;
     }
 }
 
-void set_start_blocks(char field[WIDTH][HEIGHT], block* blocks, int cnt_blocks){
-    for (int i = 0; i < cnt_blocks; ++i){
-        field[blocks[i].elems[0].x][blocks[i].elems[0].y] = blocks[i].style;
-        field[blocks[i].elems[1].x][blocks[i].elems[1].y] = blocks[i].style;
-
-        printf("x = %d y = %d\n", blocks[i].elems[0].x, blocks[i].elems[0].y);
-        printf("x = %d y = %d\n\n", blocks[i].elems[1].x, blocks[i].elems[1].y); 
-    }
-}
-
-void default_state(char field[WIDTH][HEIGHT], rocket* rocket, ball* ball){
-      
-    //block blocks[(WIDTH / 2) + (HEIGHT / 2)];
-    rocket->style = '_';
-    int len_elem_rocket = (int)length(rocket->elems);
-    for(int i = 0; i < len_elem_rocket; ++i){
-        rocket->elems[i].x = ((WIDTH / 2) - 1) + i;
-        rocket->elems[i].y = HEIGHT - 1;
-    }
-    ball->style = '*';
-    ball->pixel.x = rocket->elems[1].x;
-    ball->pixel.y = rocket->elems[1].y - 1;
-
-    for (int y = 0; y < HEIGHT; ++y){
-        for (int x = 0; x < WIDTH; ++x){
-            if (is_rocket(rocket, x, y)){
+void init_field(char field[WIDTH][HEIGHT], rocket* rocket, ball* ball, char block){
+    for (int y = 0; y < HEIGHT; ++y)
+        for(int x = 0; x < WIDTH; ++x){
+            if (is_rocket(rocket, x, y))
                 field[x][y] = rocket->style;
-            }else if (is_ball(ball, x, y)){
+            else if (is_ball(ball, x, y))
                 field[x][y] = ball->style;
-            }else{
+            else if (is_block_range(x, y))
+                field[x][y] = block;
+            else
                 field[x][y] = ' ';
+        }
+}
+
+void init_rocket(rocket* rocket){
+    rocket->style = '-';
+    int x = (WIDTH / 2) - 2;
+    int y = HEIGHT -1;
+    for (int i = 0; i < 3; ++i){
+        rocket->elems[i].x = x + i;  
+        rocket->elems[i].y = y;
+    } 
+}
+
+void init_ball(ball* ball, int start_x, int start_y){
+    ball->style = '0';
+    ball->pixel.x = start_x;
+    ball->pixel.y = start_y;
+}
+
+void init_blocks(block** blocks, int n, int m){
+    for (int i = 0; i < n; i++)
+        for (int j = 0; j < m; j++){
+            block block;
+            block.pixel.x = i + 1;
+            block.pixel.y = j + 1;
+            block.style = '#';
+            blocks[i][j] = block;
+        }
+}
+
+void move_rocket(rocket* rocket, int step){
+    int left_edge = 0;
+    int right_edge = WIDTH - 1;
+    int pivod = rocket->elems[1].x + step;
+
+    if (left_edge < pivod && pivod < right_edge)
+        for (int i = 0; i < 3; ++i)
+            rocket->elems[i].x += step;
+}
+
+void ball_behavior(char field[WIDTH][HEIGHT], ball* ball, rocket* rocket, invertion* invert, char block){
+    pixel neighbor;
+    for (int i_x = -1; i_x <= 1; ++i_x)
+        for (int j_y = -1; j_y <= 1; ++j_y){
+            if (i_x == 0 && j_y == 0) continue;
+            if (i_x != 0 && j_y != 0) continue;
+            neighbor.x = i_x + ball->pixel.x;
+            neighbor.y = j_y + ball->pixel.y;
+            //by X
+            if ((i_x == 0 && j_y != 0) && (is_barrier(field, neighbor, rocket, block))){
+                invert->y_inversion *= -1;
+            }else if ((i_x != 0 && j_y == 0) && (is_barrier(field, neighbor, rocket, block))){
+                invert->x_inversion *= -1;
             }
         }
-    }
+}
+
+
+
+void movement_ball(char field[WIDTH][HEIGHT], ball* ball, rocket* rocket, invertion* invert, char block){
+    ball_behavior(field, ball, rocket, invert, block);
+    int step_x = invert->x_inversion;
+    int step_y = invert->y_inversion;
+    //printf("step x = %d\n", step_x);
+    //printf("step y = %d\n", step_y);
+    ball->pixel.x += step_x;
+    ball->pixel.y += step_y;
+}
+
+block** allocete_memory(int n, int m, bool* error){
+    block** array;
+    array = malloc(n * sizeof(block*));
+    if (*array != NULL){
+        for (int i = 0; i < m; i++){
+            array[i] = malloc(m * sizeof(block));
+            if (array[i] == NULL)
+                *error = true;
+        }
+    }else
+        *error = true;
+    return array;
+}
+
+void free_memory(block** blocks, int n){
+    for (int i = 0; i < n; ++i)
+        free(blocks[i]);
+    free(blocks);
 }
 
 void render(char field[WIDTH][HEIGHT]){
@@ -76,7 +151,7 @@ void render(char field[WIDTH][HEIGHT]){
         for (int x = 0; x < WIDTH; ++x){
             char pxl = field[x][y];
             printf("%c", pxl);
-        }
+        } 
         printf("\n");
     }
 }
