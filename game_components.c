@@ -17,17 +17,17 @@ bool is_wall(pixel pixel){
     return pixel.x == 0 || pixel.x == WIDTH - 1 || pixel.y == 0; 
 }
 bool is_block_range(int x, int y){
-    return (1 <= y && y <= (HEIGHT / 3)) && (1 <= x && x <= WIDTH - 2);
+    return (1 <= x && x <= len_blocks_m) && (1 <= y && y <= len_blocks_n);
 }
-bool is_block(char field[WIDTH][HEIGHT], pixel pixel, char block){
-    return field[pixel.x][pixel.y] == block;
-}
+/*{
+    return true;
+}*/
 bool is_gates(pixel pix){
     return pix.y >= HEIGHT - 1;
 }
-bool is_barrier(char field[WIDTH][HEIGHT], pixel neighbor, rocket* rocket, char block){
-    if (is_block(field, neighbor, block)){
-        field[neighbor.x][neighbor.y] = ' ';
+bool is_barrier(pixel neighbor, rocket* rocket, block** blocks){
+    if (is_block_range(neighbor.x, neighbor.y)){
+        blocks[neighbor.x][neighbor.y].style = ' ';
         return true;
     }
     return is_wall(neighbor) || is_rocket(rocket, neighbor.x, neighbor.y);

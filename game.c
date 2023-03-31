@@ -10,15 +10,13 @@ void game(){
     int health = 4;
     invert.x_inversion = 1;
     invert.y_inversion = 1;
-    int len_blocks_n = HEIGHT / 3;
-    int len_blocks_m = WIDTH - 2;
     blocks = allocete_memory(len_blocks_n, len_blocks_m, &error);
 
     if (error) exit(1);
-    
-    
+
     init_rocket(&rocket);
     init_ball(&ball, rocket.elems[1].x, rocket.elems[1].y - 1);
+    init_blocks(blocks, len_blocks_n, len_blocks_m);
     init_field(field, &rocket, &ball, blocks);
     render(field);
 
@@ -27,9 +25,10 @@ void game(){
         system("cls");
         control_rocket(&rocket, ch);
         init_field(field, &rocket, &ball, blocks);
-        movement_ball(field, &ball, &rocket, &invert, blocks);
+        movement_ball(&ball, &rocket, &invert, blocks);
         render(field);
     }while (health);
+    free_memory(blocks, len_blocks_n);
 }
 
 void control_rocket(rocket* rocket, char ch){
@@ -46,18 +45,19 @@ void control_rocket(rocket* rocket, char ch){
     }
 }
 
-void init_field(char field[WIDTH][HEIGHT], rocket* rocket, ball* ball, char block){
-    for (int y = 0; y < HEIGHT; ++y)
+void init_field(char field[WIDTH][HEIGHT], rocket* rocket, ball* ball, block** blocks){
+    for (int y = 0; y < HEIGHT; ++y){
         for(int x = 0; x < WIDTH; ++x){
             if (is_rocket(rocket, x, y))
                 field[x][y] = rocket->style;
             else if (is_ball(ball, x, y))
                 field[x][y] = ball->style;
             else if (is_block_range(x, y))
-                field[x][y] = block;
+                field[x][y] = blocks[y - 1][x - 1].style;
             else
                 field[x][y] = ' ';
         }
+    }
 }
 
 void init_rocket(rocket* rocket){
@@ -97,7 +97,7 @@ void move_rocket(rocket* rocket, int step){
             rocket->elems[i].x += step;
 }
 
-void ball_behavior(char field[WIDTH][HEIGHT], ball* ball, rocket* rocket, invertion* invert, char block){
+void ball_behavior(ball* ball, rocket* rocket, invertion* invert, block** blocks){
     pixel neighbor;
     for (int i_x = -1; i_x <= 1; ++i_x)
         for (int j_y = -1; j_y <= 1; ++j_y){
@@ -106,22 +106,18 @@ void ball_behavior(char field[WIDTH][HEIGHT], ball* ball, rocket* rocket, invert
             neighbor.x = i_x + ball->pixel.x;
             neighbor.y = j_y + ball->pixel.y;
             //by X
-            if ((i_x == 0 && j_y != 0) && (is_barrier(field, neighbor, rocket, block))){
+            if ((i_x == 0 && j_y != 0) && (is_barrier(neighbor, rocket, blocks))){
                 invert->y_inversion *= -1;
-            }else if ((i_x != 0 && j_y == 0) && (is_barrier(field, neighbor, rocket, block))){
+            }else if ((i_x != 0 && j_y == 0) && (is_barrier(neighbor, rocket, blocks))){
                 invert->x_inversion *= -1;
             }
         }
 }
 
-
-
-void movement_ball(char field[WIDTH][HEIGHT], ball* ball, rocket* rocket, invertion* invert, char block){
-    ball_behavior(field, ball, rocket, invert, block);
+void movement_ball(ball* ball, rocket* rocket, invertion* invert, block** blocks){
+    ball_behavior(ball, rocket, invert, blocks);
     int step_x = invert->x_inversion;
     int step_y = invert->y_inversion;
-    //printf("step x = %d\n", step_x);
-    //printf("step y = %d\n", step_y);
     ball->pixel.x += step_x;
     ball->pixel.y += step_y;
 }
@@ -129,7 +125,7 @@ void movement_ball(char field[WIDTH][HEIGHT], ball* ball, rocket* rocket, invert
 block** allocete_memory(int n, int m, bool* error){
     block** array;
     array = malloc(n * sizeof(block*));
-    if (*array != NULL){
+    if (array != NULL){
         for (int i = 0; i < m; i++){
             array[i] = malloc(m * sizeof(block));
             if (array[i] == NULL)

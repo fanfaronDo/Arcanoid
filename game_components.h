@@ -3,6 +3,8 @@
 #define length(arr) sizeof(arr) / sizeof(*arr)
 #define WIDTH 24
 #define HEIGHT 10
+#define len_blocks_n (HEIGHT / 3)
+#define len_blocks_m (WIDTH - 2)
 #include <stdbool.h>
 
 typedef struct 
@@ -38,10 +40,10 @@ typedef struct
 
 bool is_rocket(rocket* rocket, int x, int y);
 bool is_ball(ball* ball, int x, int y);
-bool is_block_range(int x, int y);
-bool is_block(char field[WIDTH][HEIGHT], pixel pixel, char block);
 bool is_wall(pixel pixel);
+bool is_block_range(int x, int y);
+//bool is_block(block** blocks, int x, int y);
 bool is_gates(pixel pix);
-bool is_barrier(char field[WIDTH][HEIGHT], pixel neighbor, rocket* rocket, char block);
+bool is_barrier(pixel neighbor, rocket* rocket, block** blocks);
 bool is_game_over(int* health);
 #endif
