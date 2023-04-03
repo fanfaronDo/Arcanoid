@@ -19,17 +19,27 @@ bool is_wall(pixel pixel){
 bool is_block_range(int x, int y){
     return (1 <= x && x <= len_blocks_m) && (1 <= y && y <= len_blocks_n);
 }
-/*{
-    return true;
-}*/
+
 bool is_gates(pixel pix){
     return pix.y >= HEIGHT - 1;
 }
-bool is_barrier(pixel neighbor, rocket* rocket, block** blocks){
+
+bool is_gates(pixel pix){
+    return (pix.x > 0 || pix.x < WIDTH) && (pix.y == HEIGHT);
+}
+
+bool is_barrier(pixel neighbor, rocket* rocket, block** blocks, ball* ball, int* health){
+    bool is_barrier_1 = false;
+
     if (is_block_range(neighbor.x, neighbor.y)){
-        blocks[neighbor.x][neighbor.y].style = ' ';
-        return true;
+        blocks[neighbor.y][neighbor.x].style = ' ';
+        is_barrier_1 = true;
+    }else if (is_gates(neighbor)){
+        health -= 1;
+         
+        ball->pixel.x = rocket
     }
+
     return is_wall(neighbor) || is_rocket(rocket, neighbor.x, neighbor.y);
 }
 bool is_game_over(int* health){

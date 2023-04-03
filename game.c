@@ -1,5 +1,8 @@
 #include "game.h"
 
+// вынести инициализацию в другой модуль для возможносте переиспользовать ф-ю init rocket and init ball
+
+
 void game(){
     rocket rocket;
     ball ball;
@@ -99,16 +102,16 @@ void move_rocket(rocket* rocket, int step){
 
 void ball_behavior(ball* ball, rocket* rocket, invertion* invert, block** blocks){
     pixel neighbor;
-    for (int i_x = -1; i_x <= 1; ++i_x)
-        for (int j_y = -1; j_y <= 1; ++j_y){
-            if (i_x == 0 && j_y == 0) continue;
-            if (i_x != 0 && j_y != 0) continue;
-            neighbor.x = i_x + ball->pixel.x;
-            neighbor.y = j_y + ball->pixel.y;
+    for (int x = -1; x <= 1; ++x)
+        for (int y = -1; y <= 1; ++y){
+            if (x == 0 && y == 0) continue;
+            if (x != 0 && y != 0) continue;
+            neighbor.x = x + ball->pixel.x;
+            neighbor.y = y + ball->pixel.y;
             //by X
-            if ((i_x == 0 && j_y != 0) && (is_barrier(neighbor, rocket, blocks))){
+            if ((x == 0 && y != 0) && (is_barrier(neighbor, rocket, blocks))){
                 invert->y_inversion *= -1;
-            }else if ((i_x != 0 && j_y == 0) && (is_barrier(neighbor, rocket, blocks))){
+            }else if ((x != 0 && y == 0) && (is_barrier(neighbor, rocket, blocks))){
                 invert->x_inversion *= -1;
             }
         }
