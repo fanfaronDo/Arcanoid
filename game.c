@@ -28,7 +28,7 @@ void game(){
         system("cls");
         control_rocket(&rocket, ch);
         init_field(field, &rocket, &ball, blocks);
-        movement_ball(&ball, &rocket, &invert, blocks);
+        movement_ball(&ball, &rocket, &invert, blocks, &health);
         render(field);
     }while (health);
     free_memory(blocks, len_blocks_n);
@@ -49,13 +49,16 @@ void control_rocket(rocket* rocket, char ch){
 }
 
 void init_field(char field[WIDTH][HEIGHT], rocket* rocket, ball* ball, block** blocks){
+    pixel pxl;
     for (int y = 0; y < HEIGHT; ++y){
         for(int x = 0; x < WIDTH; ++x){
-            if (is_rocket(rocket, x, y))
+            pxl.x = x;
+            pxl.y = y;
+            if (is_rocket(rocket, pxl))
                 field[x][y] = rocket->style;
-            else if (is_ball(ball, x, y))
+            else if (is_ball(ball, pxl))
                 field[x][y] = ball->style;
-            else if (is_block_range(x, y))
+            else if (is_block(pxl, blocks, false))
                 field[x][y] = blocks[y - 1][x - 1].style;
             else
                 field[x][y] = ' ';
@@ -83,9 +86,10 @@ void init_blocks(block** blocks, int n, int m){
     for (int i = 0; i < n; i++)
         for (int j = 0; j < m; j++){
             block block;
-            block.pixel.x = i + 1;
-            block.pixel.y = j + 1;
+            block.pixel.y = i + 1;
+            block.pixel.x = j + 1;
             block.style = '#';
+            block.alive = true;
             blocks[i][j] = block;
         }
 }
@@ -100,7 +104,7 @@ void move_rocket(rocket* rocket, int step){
             rocket->elems[i].x += step;
 }
 
-void ball_behavior(ball* ball, rocket* rocket, invertion* invert, block** blocks){
+void ball_behavior(ball* ball, rocket* rocket, invertion* invert, block** blocks, int* health){
     pixel neighbor;
     for (int x = -1; x <= 1; ++x)
         for (int y = -1; y <= 1; ++y){
@@ -109,16 +113,16 @@ void ball_behavior(ball* ball, rocket* rocket, invertion* invert, block** blocks
             neighbor.x = x + ball->pixel.x;
             neighbor.y = y + ball->pixel.y;
             //by X
-            if ((x == 0 && y != 0) && (is_barrier(neighbor, rocket, blocks))){
+            if ((x == 0 && y != 0) && (is_barrier(neighbor, rocket, blocks, ball, health))){
                 invert->y_inversion *= -1;
-            }else if ((x != 0 && y == 0) && (is_barrier(neighbor, rocket, blocks))){
+            }else if ((x != 0 && y == 0) && (is_barrier(neighbor, rocket, blocks, ball, health))){
                 invert->x_inversion *= -1;
             }
         }
 }
 
-void movement_ball(ball* ball, rocket* rocket, invertion* invert, block** blocks){
-    ball_behavior(ball, rocket, invert, blocks);
+void movement_ball(ball* ball, rocket* rocket, invertion* invert, block** blocks, int* health){
+    ball_behavior(ball, rocket, invert, blocks, health);
     int step_x = invert->x_inversion;
     int step_y = invert->y_inversion;
     ball->pixel.x += step_x;

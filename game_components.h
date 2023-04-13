@@ -30,6 +30,8 @@ typedef struct
 {
     pixel pixel;
     char style;
+    bool alive;
+
 } block;
 
 typedef struct 
@@ -38,12 +40,12 @@ typedef struct
     int y_inversion;
 } invertion;
 
-bool is_rocket(rocket* rocket, int x, int y);
-bool is_ball(ball* ball, int x, int y);
+bool is_rocket(rocket* rocket, pixel pixel);
+bool is_ball(ball* ball, pixel pixel);
 bool is_wall(pixel pixel);
-bool is_block_range(int x, int y);
+bool is_block(pixel pixel, block** blocks, bool kill_block);
 //bool is_block(block** blocks, int x, int y);
 bool is_gates(pixel pix);
-bool is_barrier(pixel neighbor, rocket* rocket, block** blocks);
+bool is_barrier(pixel neighbor, rocket* rocket, block** blocks, ball* ball, int* health);
 bool is_game_over(int* health);
 #endif
